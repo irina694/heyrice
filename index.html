@@ -1,0 +1,88 @@
+<html>
+<head>
+</head>
+<body onload="initialize()">
+    <table width="100%">
+        <tr width="100%">
+            <td width="85%" height="700px">
+                <div id="map_canvas" style="width: 100%; height: 100%">
+                </div>
+            </td>
+            </div>
+            <td width="15%">
+                sup.
+            </td>
+        </tr>
+    </table>
+    <form action="/test" method="post">
+    <div>
+        <textarea name="content" rows="3" cols="60"></textarea></div>
+    <div>
+        <input type="submit" value="Test Button"></div>
+    </form>
+</body>
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyC6F72CN5MnSvg_LxxlOURuwcJVzfH6kVs&sensor=false">
+    </script>
+<script type="text/javascript">
+    var map;
+    function initialize() {
+        var myOptions = {
+            zoom: 16,
+            center: new google.maps.LatLng(29.717821, -95.402561),
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        }
+        map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+        google.maps.event.addListener(map, 'click', function (event) {
+            placeMarker(event.latLng);
+        });
+    }
+
+    var myOptions = {
+        center: new google.maps.LatLng(-34.397, 150.644),
+        zoom: 8,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+
+    /*Marker code weee*/
+    var marker;
+    function placeMarker(location) {
+        var titleString = "Lat: " + location.lat() + ", Lng: " + location.lng();
+        if (marker) {
+            marker.setPosition(location);
+            marker.setAnimation(google.maps.Animation.DROP);
+            marker.setTitle(titleString);
+        } else {
+
+            /*Make new markers here*/
+            marker = new google.maps.Marker({
+                position: location,
+                map: map,
+                animation: google.maps.Animation.DROP,
+                draggable: true,
+                title: titleString
+            });
+
+            google.maps.event.addListener(marker, 'click', function (event) {
+                toggleBounce();
+            });
+            google.maps.event.addListener(marker, 'dragend', function (event) {
+                markerDragEnd(marker, event);
+            });
+        }
+    }
+
+    function markerDragEnd(marker, event) {
+        var titleString = "Lat: " + event.latLng.lat() + ", Lng: " + event.latLng.lng();
+        marker.setTitle(titleString);
+    }
+
+    function toggleBounce() {
+        if (marker.getAnimation() != null) {
+            marker.setAnimation(null);
+        } else {
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+        }
+    }
+	
+    </script>
+</html>
