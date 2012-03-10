@@ -27,4 +27,4 @@ FACEBOOK_REALTIME_VERIFY_TOKEN = 'RANDOM TOKEN'
 #EXTERNAL_HREF = 'http://runwithfriends.appspot.com/'
 
 # Facebook User IDs of admins. The poor mans admin system.
-ADMIN_USER_IDS = ['5526183']
+#ADMIN_USER_IDS = ['5526183']
