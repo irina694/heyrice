@@ -1,30 +1,34 @@
 import cgi
 import datetime
 
+<<<<<<< .mine
 from google.appengine.ext import db
 from google.appengine.api import urlfetch, taskqueue
+=======
+>>>>>>> .r13
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import util
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.api import users
 from django.utils import simplejson
+<<<<<<< .mine
 from random import randrange
 from uuid import uuid4
 import logging
+=======
+>>>>>>> .r13
 
 class MainHandler(webapp.RequestHandler):
         def get(self):
                 self.response.out.write(template.render('index.html', {}))
         def post(self):
                 self.response.out.write(template.render('index.html', {}))
-
 class TestHandler(webapp.RequestHandler):
         def post(self):
                 self.response.out.write(template.render('markerPopup.html',{}))
         def get(self):
                 self.response.out.write(template.render('markerPopup.html',{}))
-
 class EventHandler(webapp.RequestHandler):
         def post(self):
                 eventName=self.request.get('event_name')
@@ -42,7 +46,7 @@ class SubmittedEvent(DictModel):
         latitude = db.FloatProperty(required=True)
         longitude = db.FloatProperty(required=True)
         privacy = db.StringProperty(required=True)
-        time = db.StringProperty(required=False)
+        time = db.StringProperty(required=True)
         description = db.StringProperty(required=False)
         #tags = db.StringListProperty(required=True)
 class GetEventHandler(webapp.RequestHandler):
@@ -53,27 +57,24 @@ class SubmitEventHandler(webapp.RequestHandler):
         def post(self):
                 try:
                         #get information from the post.
-                        eventName=cgi.escape(self.request.get('eventName'))
+                        eventName=self.request.get('eventName')
                         latStr=self.request.get('markerLat')
                         lat=float(self.request.get('markerLat'))
                         lngStr=self.request.get('markerLng')
                         lng=float(self.request.get('markerLng'))
                         privacy = self.request.get('privacy')
-                        datetime = cgi.escape(self.request.get('datetime'))
-                        desc = cgi.escape(self.request.get('desc'))
+                        datetime = self.request.get('datetime')
                         #tags = self.request.getAll('tags')
                         newEvent = SubmittedEvent(name=eventName,
                                                   latitude=lat,
                                                   longitude=lng,
                                                   privacy=privacy,
-                                                  time=datetime,
-                                                  description=desc)
+                                                  time=datetime)
                         db.put(newEvent)
                         self.response.out.write(template.render('index.html', {}))
                         #TODO: tags
                 except:
-                        self.response.out.write(template.render('index.html', {}))
-                        self.response.out.write('<script type="text/javascript">alert("Event improperly formed- try again");</script>')
+                        self.response.out.write(template.render('index.html', {})) 
 def main():
     
     application = webapp.WSGIApplication([('/', MainHandler),

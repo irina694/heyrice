@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://www.facebook.com/2008/fbml">
+
+<head>
+</head>
+<body onload="initialize()">
+<h1>Welcome to Hey Rice!</h1>
+    <table width="100%">
+        <tr width="100%">
+            <td width="85%" height="500px">
+                <div id="map_canvas" style="width: 100%; height: 100%">
+                </div>
+            </td>
+            </div>
+            <td width="15%">
+                Events and stuff.
+            </td>
+        </tr>
+    </table>
+	<form>
+		<fieldset data-type="horizontal" display=inline>
+		<legend>Scope</legend>
+		<input type=radio name=privacy value=Year checked=true onclick="filterMarkers('time','year')" > Year </label>
+		<label> <input type=radio name=privacy value=Month onclick="filterMarkers('time','month')"> Month </label>
+		<label> <input type=radio name=privacy value=Week onclick="filterMarkers('time','week')"> Week </label>
+		<label> <input type=radio name=privacy value=Week onclick="filterMarkers('time','day')"> Day </label>
+		<label> <input type=radio name=privacy value=Hour onclick="filterMarkers('time','hour')" > Hour </label>
+		</fieldset>
+	</form>
+
+<body>
+        <div id="fb-root"></div>
+   <script type="text/javascript">
+            var button;
+            var userInfo;
+            
+            window.fbAsyncInit = function() {
+                FB.init({ appId: '343358929041322', //change the appId to your appId
+                    status: true, 
+                    cookie: true,
+                    xfbml: true,
+                    oauth: true});
+
+               showLoader(true);
+               
+               function updateButton(response) {
+                    button       =   document.getElementById('fb-auth');
+                    userInfo     =   document.getElementById('user-info');
+                    
+                    if (response.authResponse) {
+                        //user is already logged in and connected
+                        FB.api('/me', function(info) {
+                            login(response, info);
+                        });
+                        
+                        button.onclick = function() {
+                            FB.logout(function(response) {
+                                logout(response);
+                            });
+                        };
+                    } else {
+                        //user is not connected to your app or logged out
+                        button.innerHTML = 'Login';
+                        button.onclick = function() {
+                            showLoader(true);
+                            FB.login(function(response) {
+                                if (response.authResponse) {
+                                    FB.api('/me', function(info) {
+                                        login(response, info);
+                                    });	   
+                                } else {
+                                    //user cancelled login or did not grant authorization
+                                    showLoader(false);
+                                }
+                            }, {scope:'email,user_birthday,status_update,publish_stream,user_about_me'});  	
+                        }
+                    }
+                }
+                
+                // run once with current status and whenever the status changes
+                FB.getLoginStatus(updateButton);
+                FB.Event.subscribe('auth.statusChange', updateButton);	
+            };
+            (function() {
+                var e = document.createElement('script'); e.async = true;
+                e.src = document.location.protocol 
+                    + '//connect.facebook.net/en_US/all.js';
+                document.getElementById('fb-root').appendChild(e);
+            }());
+            
+            
+            function login(response, info){
+                if (response.authResponse) {
+                    var accessToken   =   response.authResponse.accessToken;
+                    
+                    userInfo.innerHTML   = '<img src="https://graph.facebook.com/' + info.id + '/picture">' + info.name
+                                                                     + "<br /> Your Access Token: " + accessToken;
+                    button.innerHTML  = 'Logout';
+                    showLoader(false);
+                    document.getElementById('other').style.display = "block";
+                }
+            }
+        
+            function logout(response){
+                userInfo.innerHTML                             =   "";
+                document.getElementById('debug').innerHTML     =   "";
+                document.getElementById('other').style.display =   "none";
+                showLoader(false);
+            }
+
+            //stream publish method
+            function streamPublish(name, description, hrefTitle, hrefLink, userPrompt){
+                showLoader(true);
+                FB.ui(
+                {
+                    method: 'stream.publish',
+                    message: '',
+                    attachment: {
+                        name: name,
+                        caption: '',
+                        description: (description),
+                        href: hrefLink
+                    },
+                    action_links: [
+                        { text: hrefTitle, href: hrefLink }
+                    ],
+                    user_prompt_message: userPrompt
+                },
+                function(response) {
+                    showLoader(false);
+                });
+
+            }
+            function showStream(){
+                FB.api('/me', function(response) {
+                    //console.log(response.id);
+                    streamPublish(response.name, 'I like the articles of Thinkdiff.net', 'hrefTitle', 'http://thinkdiff.net', "Share thinkdiff.net");
+                });
+            }
+
+            function share(){
+                showLoader(true);
+                var share = {
+                    method: 'stream.share',
+                    u: 'http://thinkdiff.net/'
+                };
+
+                FB.ui(share, function(response) { 
+                    showLoader(false);
+                    console.log(response); 
+                });
+            }
+
+            function graphStreamPublish(){
+                showLoader(true);
+                
+                FB.api('/me/feed', 'post', 
+                    { 
+                        message     : "I love thinkdiff.net for facebook app development tutorials",
+                        link        : 'http://ithinkdiff.net',
+                        picture     : 'http://thinkdiff.net/iphone/lucky7_ios.jpg',
+                        name        : 'iOS Apps & Games',
+                        description : 'Checkout iOS apps and games from iThinkdiff.net. I found some of them are just awesome!'
+                        
+                }, 
+                function(response) {
+                    showLoader(false);
+                    
+                    if (!response || response.error) {
+                        alert('Error occured');
+                    } else {
+                        alert('Post ID: ' + response.id);
+                    }
+                });
+            }
+
+            function fqlQuery(){
+                showLoader(true);
+                
+                FB.api('/me', function(response) {
+                    showLoader(false);
+                    
+                    //http://developers.facebook.com/docs/reference/fql/user/
+                    var query       =  FB.Data.query('select name, profile_url, sex, pic_small from user where uid={0}', response.id);
+                    query.wait(function(rows) {
+                       document.getElementById('debug').innerHTML =  
+                         'FQL Information: '+  "<br />" + 
+                         'Your name: '      +  rows[0].name                                                            + "<br />" +
+                         'Your Sex: '       +  (rows[0].sex!= undefined ? rows[0].sex : "")                            + "<br />" +
+                         'Your Profile: '   +  "<a href='" + rows[0].profile_url + "'>" + rows[0].profile_url + "</a>" + "<br />" +
+                         '<img src="'       +  rows[0].pic_small + '" alt="" />' + "<br />";
+                     });
+                });
+            }
+
+            function setStatus(){
+                showLoader(true);
+                
+                status1 = document.getElementById('status').value;
+                FB.api(
+                  {
+                    method: 'status.set',
+                    status: status1
+                  },
+                  function(response) {
+                    if (response == 0){
+                        alert('Your facebook status not updated. Give Status Update Permission.');
+                    }
+                    else{
+                        alert('Your facebook status updated');
+                    }
+                    showLoader(false);
+                  }
+                );
+            }
+            
+            function showLoader(status){
+                if (status)
+                    document.getElementById('loader').style.display = 'block';
+                else
+                    document.getElementById('loader').style.display = 'none';
+            }
+            
+        </script>
+
+        <button id="fb-auth">Login</button>
+        <div id="loader" style="display:none">
+        </div>
+        <br />
+        <div id="user-info"></div>
+        <br />
+        <div id="debug"></div>
+        
+        <div id="other" style="display:none">
+            <a href="#" onclick="showStream(); return false;">Publish Wall Post</a> |
+            <a href="#" onclick="share(); return false;">Share With Your Friends</a> |
+            <a href="#" onclick="graphStreamPublish(); return false;">Publish Stream Using Graph API</a> |
+            <a href="#" onclick="fqlQuery(); return false;">FQL Query Example</a>
+            
+            <br />
+            <textarea id="status" cols="50" rows="5">Write your status here and click 'Status Set Using Legacy Api Call'</textarea>
+            <br />
+            <a href="#" onclick="setStatus(); return false;">Status Set Using Legacy Api Call</a>
+        </div>
+    </body>
+
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyC6F72CN5MnSvg_LxxlOURuwcJVzfH6kVs&sensor=false">
+    </script>
+<script type="text/javascript">
+    var map;
+    function initialize() {
+        var myOptions = {
+            zoom: 16,
+            center: new google.maps.LatLng(29.717821, -95.402561),
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        }
+        map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+        google.maps.event.addListener(map, 'click', function (event) {
+            placeMarker(event.latLng);
+        });
+		downloadEvents(new google.maps.LatLng(29.717821, -95.402561));
+		var currentDate = new XDate();
+		document.getElementById("curTime").innerHTML = currentDate;
+	}
+
+	//var otherEventInfoWindow;
+	var eventsList;
+	function getEventByName(name){
+		var i;
+		for(i;i<eventsList.length;i++){
+			if(eventsList[i].name == name){
+				return eventsList[i];
+			}
+		}
+		return -1;
+	}
+	
+	function createMarker(pos, t,html) {
+    var marker = new google.maps.Marker({       
+        position: pos, 
+        map: map,  // google.maps.Map 
+        title: t,
+		html: ''
+    }); 
+    google.maps.event.addListener(marker, 'click', function() { 
+		
+		otherEventsInfoWindow.setContent(this.title);
+		otherEventsInfoWindow.open(map, this);
+    }); 
+    return marker;  
+}
+	/* now inside your initialise function */
+otherEventsInfoWindow = new google.maps.InfoWindow({
+content: "holding..."
+});
+	function downloadEvents(location){
+		var eventXhr = new XMLHttpRequest();
+		eventXhr.onreadystatechange=function()
+		{
+			if (eventXhr.readyState==4 && eventXhr.status==200){
+				//alert(eventXhr.responseText);
+				eventsList = JSON.parse(eventXhr.responseText);
+				var i = 0;
+				for(i;i<eventsList.length;i++){
+					var curEvent = eventsList[i];
+					var eventMarker = createMarker(new google.maps.LatLng(curEvent.latitude, curEvent.longitude),curEvent.name,curEvent.html);
+				}
+			}
+		}
+		eventXhr.open("GET","/getEvents",true);
+		eventXhr.send();
+	}
+	
+    /*Marker code weee*/
+    var marker;
+    function placeMarker(location) {
+        var titleString = "Lat: " + location.lat() + ", Lng: " + location.lng();
+        if (marker) {
+            marker.setPosition(location);
+            marker.setAnimation(google.maps.Animation.DROP);
+            marker.setTitle(titleString);
+			infowindow.close();
+        } else {
+
+            /*Make new markers here*/
+            marker = new google.maps.Marker({
+                position: location,
+                map: map,
+                animation: google.maps.Animation.DROP,
+                draggable: true,
+                title: titleString
+            });
+            google.maps.event.addListener(marker, 'click', function (event) {
+                toggleBounce();
+				infowindow.open(map,marker);
+				document.getElementsByName("markerLat")[0].value = event.latLng.lat();
+				document.getElementsByName("markerLng")[0].value = event.latLng.lng();
+            });
+            google.maps.event.addListener(marker, 'dragend', function (event) {
+                markerDragEnd(marker, event);
+            });
+			
+        }
+    }
+	/*
+	var markerPopupHTML = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'+
+'<html xmlns="http://www.w3.org/1999/xhtml" >'+
+'<head>'+
+    '<title>Marker HTML</title>'+
+    '<form>'+
+ '<p><label>Event name: <input name=event_name></label></p>'+
+ '<fieldset>'+
+'  <legend>Privacy</legend>'+
+  '<p><label> <input type=radio name=size> Private </label></p>'+
+  '<p><label> <input type=radio name=size> Public </label></p>'+
+ '</fieldset>'+
+ '<fieldset>'+
+'  <legend> Event Tags </legend>'+
+  '<p><label> <input name=tags type=checkbox> Food </label></p>'+
+  '<p><label> <input name=tags type=checkbox> Drinking </label></p>'+
+  '<p><label> <input name=tags type=checkbox> Lecture </label></p>'+
+  '<p><label> <input name=tags type=checkbox> Free </label></p>'+
+ '</fieldset>'+
+ '<input type="date" />'+
+ '<input type="time" />'+
+'</form>'+
+'</head>'+
+'<body>'+
+''+
+'</body>'+
+'</html>'+
+'';
+*/
+var markerPopupHTML;
+var infowindow;
+var markerXhr = new XMLHttpRequest();
+markerXhr.onreadystatechange=function()
+  {
+  if (markerXhr.readyState==4 && markerXhr.status==200)
+    {
+    markerPopupHTML=markerXhr.responseText;
+	infowindow = new google.maps.InfoWindow({
+		content: markerPopupHTML
+	});
+    }
+  }
+markerXhr.open("POST","/getMarkerPopup",true);
+markerXhr.send();
+    function markerDragEnd(marker, event) {
+        var titleString = "Lat: " + event.latLng.lat() + ", Lng: " + event.latLng.lng();
+        marker.setTitle(titleString);
+    }
+
+	function updateLatLng(){
+		document.getElementsByName("markerLat")[0].value = marker.getPosition().lat();
+		document.getElementsByName("markerLng")[0].value = marker.getPosition().lng();
+		//Also gonna validate some stuff.
+		var checkDate = new XDate(document.getElementsByName("datetime")[0].value);
+		if(checkDate.valid() == false){
+			return false;
+		}
+		return true;
+	}
+    function toggleBounce() {
+        if (marker.getAnimation() != null) {
+            marker.setAnimation(null);
+        } else {
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+        }
+    }
+	
+    </script>
+
+<script type="text/javascript" src="https://raw.github.com/arshaw/xdate/master/src/xdate.js"></script>
+</html>

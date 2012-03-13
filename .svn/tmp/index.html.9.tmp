@@ -19,12 +19,12 @@
             oauth      : true,
           });
       };
-    /*  (function(d){
+      (function(d){
            var js, id = 'facebook-jssdk'; if (d.getElementById(id)) {return;}
           js = d.createElement('script'); js.id = id; js.async = true;
            js.src = "//connect.facebook.net/en_US/all.js";
            d.getElementsByTagName('head')[0].appendChild(js);
-         }(document));*/
+         }(document));
     FB.Event.subscribe('auth.login', function () {
           window.location = "http://heyricefbook.appspot.com/";
       });
@@ -184,8 +184,12 @@ Displaying from <b><span name=shownStartDate>START DATE</span></b> to <b><span n
        document.body.appendChild(script);        
 
 	   }
-   </script> 
 
+<<<<<<< .mine
+  </script> 
+
+=======
+>>>>>>> .r20
   </body>
 
 <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?&sensor=true">
@@ -233,7 +237,7 @@ Displaying from <b><span name=shownStartDate>START DATE</span></b> to <b><span n
    } else {
      console.log('User cancelled login or did not fully authorize.');
    }
- }, {scope: 'email,user_likes'});
+ }, {scope: 'user_events'});
 	//getFacebookEvents();
 	}
 
@@ -405,6 +409,7 @@ markerXhr.send();
         }
     }
 	
+
     </script>
 
 </html>

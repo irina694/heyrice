@@ -19,16 +19,18 @@
             oauth      : true,
           });
       };
-    /*  (function(d){
+      (function(d){
            var js, id = 'facebook-jssdk'; if (d.getElementById(id)) {return;}
           js = d.createElement('script'); js.id = id; js.async = true;
            js.src = "//connect.facebook.net/en_US/all.js";
            d.getElementsByTagName('head')[0].appendChild(js);
-         }(document));*/
+         }(document));
     FB.Event.subscribe('auth.login', function () {
           window.location = "http://heyricefbook.appspot.com/";
       });
       </script>
+
+<h1>Hey Rice!</h1>
     <table width="100%">
         <tr width="100%">
             <td width="85%" height="375px">
@@ -36,15 +38,8 @@
                 </div>
             </td>
             </div>
-			
-            <td width="15%">
-			<p>Hey Rice!</p>
-			<div id=curTime>
+            <td id=curTime width="15%">
                 i made a change and commited it to git.
-				</div>
-				<ul id=facebookEventsList>
-					
-				</ul>
             </td>
         </tr>
     </table>
@@ -157,16 +152,14 @@ Displaying from <b><span name=shownStartDate>START DATE</span></b> to <b><span n
        var userName = document.getElementById('userName');
        var greetingText = document.createTextNode('Greetings, '
          + user.name + '.');
-    userName.appendChild(greetingText);
+   userName.appendChild(greetingText);
      }
 
      var appID = "343358929041322";
      if (window.location.hash.length == 0) {
        var path = 'https://www.facebook.com/dialog/oauth?';
-	   var redirectUri = window.location.toString().replace("submitNewEvent","");
-
    var queryParams = ['client_id=' + appID,
-     'redirect_uri=' + redirectUri,
+     'redirect_uri=' + window.location,
      'response_type=token'];
    var query = queryParams.join('&');
    var url = path + query;
@@ -182,19 +175,17 @@ Displaying from <b><span name=shownStartDate>START DATE</span></b> to <b><span n
        var script = document.createElement('script');
        script.src = url;
        document.body.appendChild(script);        
-
 	   }
-   </script> 
+
+  </script> 
 
   </body>
 
-<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?&sensor=true">
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?&sensor=false">
     </script>
 <script type="text/javascript">
     var map;
     function initialize() {
-	
-	
         var myOptions = {
             zoom: 16,
             center: new google.maps.LatLng(29.717821, -95.402561),
@@ -208,22 +199,6 @@ Displaying from <b><span name=shownStartDate>START DATE</span></b> to <b><span n
 		var currentDate = new XDate();
 		document.getElementById("curTime").innerHTML = currentDate;
 		filterMarkers('time','year');
-		if (typeof(google.gears) != 'undefined') {
-			var geo = google.gears.factory.create('beta.geolocation');
-			geo.getCurrentPosition(function(position) {
-			var lat = position.latitude;
-			var lng = position.longitude;
-			var position = new google.maps.LatLng(lat, lng);
-			var homeImage = 'http://www.owlnet.rice.edu/~jc14/test/home.png';
-			var myMarker = new google.maps.Marker({
-				position: myPos,
-				map:map,
-				title:'This is you!',
-				icon:homeImage
-			});
-			});
-	}
-
         FB.login(function(response) {
    if (response.authResponse) {
      console.log('Welcome!  Fetching your information.... ');
@@ -233,15 +208,9 @@ Displaying from <b><span name=shownStartDate>START DATE</span></b> to <b><span n
    } else {
      console.log('User cancelled login or did not fully authorize.');
    }
- }, {scope: 'email,user_likes'});
-	//getFacebookEvents();
+ }, {scope: 'user_events'});
 	}
 
-	function getFacebookEvents(){
-		FB.api('/me/events',function(response){
-			//alert(response.data[0].id);
-		});
-	}
 	//var otherEventInfoWindow;
 	var eventsList;
 	function getEventByName(name){
@@ -405,6 +374,74 @@ markerXhr.send();
         }
     }
 	
-    </script>
 
+    </script>
+<?php
+require 'fb-sdk/src/facebook.php';
+$facebook = new Facebook(array(
+    'appId'  => 'change_to_you_app_id',
+    'secret' => 'change_to_you_app_secret',
+    'cookie' => true, // enable optional cookie support
+));
+$fql    =   "SELECT name, pic, start_time, end_time, location, description 
+            FROM event WHERE eid IN ( SELECT eid FROM event_member WHERE uid = 221167777906963 ) 
+            ORDER BY start_time asc";
+            
+$param  =   array(
+'method'    => 'fql.query',
+'query'     => $fql,
+'callback'  => ''
+);
+
+$fqlResult   =   $facebook->api($param);
+
+
+//looping through retrieved data
+foreach( $fqlResult as $keys => $values ){
+    //see here for the date format I used
+    //The pattern string I used 'l, F d, Y g:i a'
+    //will output something like this: July 30, 2015 6:30 pm
+
+    //getting 'start' and 'end' date,
+    //'l, F d, Y' pattern string will give us
+    //something like: Thursday, July 30, 2015
+    $start_date = date( 'l, F d, Y', $values['start_time'] );
+    $end_date = date( 'l, F d, Y', $values['end_time'] );
+
+    //getting 'start' and 'end' time
+    //'g:i a' will give us something
+    //like 6:30 pm
+    $start_time = date( 'g:i a', $values['start_time'] );
+    $end_time = date( 'g:i a', $values['end_time'] );
+
+    //printing the data
+    echo "<div class='event'>";
+    echo "<div style='float: left; margin: 0 8px 0 0;'>";
+        echo "<img src={$values['pic']} />";
+    echo "</div>";
+    echo "<div style='float: left;'>";
+        echo "<div style='font-size: 26px'>{$values['name']}</div>";
+        if( $start_date == $end_date ){
+            //if $start_date and $end_date is the same
+            //it means the event will happen on the same day
+            //so we will have a format something like:
+            //July 30, 2015 - 6:30 pm to 9:30 pm
+            echo "<div>on {$start_date} - {$start_time} to {$end_time}</div>";
+        }else{
+            //else if $start_date and $end_date is NOT the equal
+            //it means that the event will will be
+            //extended to another day
+            //so we will have a format something like:
+            //July 30, 2013 9:00 pm to Wednesday, July 31, 2013 at 1:00 am
+            echo "<div>on {$start_date} {$start_time} to {$end_date} at {$end_time}</div>";
+        }
+        echo "<div>Location: " . $values['location'] . "</div>";
+        echo "<div>More Info: " . $values['description'] . "</div>";
+    echo "</div>";
+    echo "<div style='clear: both'></div>";
+    echo "</div>";
+    
+}
+
+?>
 </html>

@@ -6,29 +6,7 @@
 <script type="text/javascript" src="http://www.owlnet.rice.edu/~jc14/test/datetimepicker.js"></script>
 </head>
 <body onload="initialize()">
-<div id="fb-root"></div>
-<script src="http://connect.facebook.net/en_US/all.js">
-  </script>
-      <script>
-        window.fbAsyncInit = function() {
-          FB.init({
-            appId      : '343358929041322',
-            status     : true, 
-            cookie     : true,
-            xfbml      : true,
-            oauth      : true,
-          });
-      };
-    /*  (function(d){
-           var js, id = 'facebook-jssdk'; if (d.getElementById(id)) {return;}
-          js = d.createElement('script'); js.id = id; js.async = true;
-           js.src = "//connect.facebook.net/en_US/all.js";
-           d.getElementsByTagName('head')[0].appendChild(js);
-         }(document));*/
-    FB.Event.subscribe('auth.login', function () {
-          window.location = "http://heyricefbook.appspot.com/";
-      });
-      </script>
+<h1>Hey Rice!</h1>
     <table width="100%">
         <tr width="100%">
             <td width="85%" height="375px">
@@ -36,15 +14,8 @@
                 </div>
             </td>
             </div>
-			
-            <td width="15%">
-			<p>Hey Rice!</p>
-			<div id=curTime>
+            <td id=curTime width="15%">
                 i made a change and commited it to git.
-				</div>
-				<ul id=facebookEventsList>
-					
-				</ul>
             </td>
         </tr>
     </table>
@@ -149,24 +120,26 @@
 		</fieldset>
 	</form>
 	</td>
+<<<<<<< .mine
+
+</body>
+=======
 Displaying from <b><span name=shownStartDate>START DATE</span></b> to <b><span name=shownEndDate>END DATE</span></b>
  <p id="userName"></p> 
-
 <script> 
      function displayUser(user) {
        var userName = document.getElementById('userName');
        var greetingText = document.createTextNode('Greetings, '
          + user.name + '.');
-    userName.appendChild(greetingText);
+   userName.appendChild(greetingText);
      }
+>>>>>>> .r16
 
      var appID = "343358929041322";
      if (window.location.hash.length == 0) {
        var path = 'https://www.facebook.com/dialog/oauth?';
-	   var redirectUri = window.location.toString().replace("submitNewEvent","");
-
    var queryParams = ['client_id=' + appID,
-     'redirect_uri=' + redirectUri,
+     'redirect_uri=' + window.location,
      'response_type=token'];
    var query = queryParams.join('&');
    var url = path + query;
@@ -178,23 +151,22 @@ Displaying from <b><span name=shownStartDate>START DATE</span></b> to <b><span n
    var query = queryParams.join('&');
    var url = path + query;
 
+<<<<<<< .mine
+=======
    // use jsonp to call the graph
        var script = document.createElement('script');
        script.src = url;
        document.body.appendChild(script);        
-
 	   }
    </script> 
-
   </body>
 
-<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?&sensor=true">
+>>>>>>> .r16
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?&sensor=false">
     </script>
 <script type="text/javascript">
     var map;
     function initialize() {
-	
-	
         var myOptions = {
             zoom: 16,
             center: new google.maps.LatLng(29.717821, -95.402561),
@@ -208,40 +180,8 @@ Displaying from <b><span name=shownStartDate>START DATE</span></b> to <b><span n
 		var currentDate = new XDate();
 		document.getElementById("curTime").innerHTML = currentDate;
 		filterMarkers('time','year');
-		if (typeof(google.gears) != 'undefined') {
-			var geo = google.gears.factory.create('beta.geolocation');
-			geo.getCurrentPosition(function(position) {
-			var lat = position.latitude;
-			var lng = position.longitude;
-			var position = new google.maps.LatLng(lat, lng);
-			var homeImage = 'http://www.owlnet.rice.edu/~jc14/test/home.png';
-			var myMarker = new google.maps.Marker({
-				position: myPos,
-				map:map,
-				title:'This is you!',
-				icon:homeImage
-			});
-			});
 	}
 
-        FB.login(function(response) {
-   if (response.authResponse) {
-     console.log('Welcome!  Fetching your information.... ');
-     FB.api('/me', function(response) {
-       console.log('Good to see you, ' + response.name + '.');
-     });
-   } else {
-     console.log('User cancelled login or did not fully authorize.');
-   }
- }, {scope: 'email,user_likes'});
-	//getFacebookEvents();
-	}
-
-	function getFacebookEvents(){
-		FB.api('/me/events',function(response){
-			//alert(response.data[0].id);
-		});
-	}
 	//var otherEventInfoWindow;
 	var eventsList;
 	function getEventByName(name){
@@ -404,7 +344,49 @@ markerXhr.send();
             marker.setAnimation(google.maps.Animation.BOUNCE);
         }
     }
-	
-    </script>
+ </script>
 
-</html>
+<div id="fb-root"></div>
+<script type="text/javascript">
+window.fbAsyncInit = function() {
+			FB.init({appId: '343358929041322', status: true, cookie: true, xfbml: true, oauth: true});
+
+			FB.Event.subscribe('auth.login', function(response) {
+				login();
+			});
+			FB.Event.subscribe('auth.logout', function(response) {
+				logout();
+			});
+
+			FB.getLoginStatus(function(response) {
+				if (response.session) {
+					greet();
+				}
+			});
+		};
+		(function() {
+			var e = document.createElement('script');
+			e.type = 'text/javascript';
+			e.src = document.location.protocol + '//connect.facebook.net/en_US/all.js';
+			e.async = true;
+			document.getElementById('fb-root').appendChild(e);
+		}());
+
+		function login(){
+			FB.api('/me', function(response) {
+				alert('You have successfully logged in, '+response.name+"!");
+			});
+		}
+		function logout(){
+			alert('You have successfully logged out!');
+		}
+		function greet(){
+		    FB.api('/me', function(response) {
+		    alert('Welcome, '+response.name+"!");
+		});
+}
+</script>
+
+
+<fb:login-button autologoutlink='true'  perms='email,user_birthday,status_update,publish_stream'></fb:login-button>
+ </html>

@@ -18,13 +18,11 @@ class MainHandler(webapp.RequestHandler):
                 self.response.out.write(template.render('index.html', {}))
         def post(self):
                 self.response.out.write(template.render('index.html', {}))
-
 class TestHandler(webapp.RequestHandler):
         def post(self):
                 self.response.out.write(template.render('markerPopup.html',{}))
         def get(self):
                 self.response.out.write(template.render('markerPopup.html',{}))
-
 class EventHandler(webapp.RequestHandler):
         def post(self):
                 eventName=self.request.get('event_name')
@@ -53,27 +51,26 @@ class SubmitEventHandler(webapp.RequestHandler):
         def post(self):
                 try:
                         #get information from the post.
-                        eventName=cgi.escape(self.request.get('eventName'))
+                        eventName=self.request.get('eventName')
                         latStr=self.request.get('markerLat')
                         lat=float(self.request.get('markerLat'))
                         lngStr=self.request.get('markerLng')
                         lng=float(self.request.get('markerLng'))
                         privacy = self.request.get('privacy')
-                        datetime = cgi.escape(self.request.get('datetime'))
-                        desc = cgi.escape(self.request.get('desc'))
+                        datetime = self.request.get('datetime')
+                        description = self.request.get('eventDescription')
                         #tags = self.request.getAll('tags')
                         newEvent = SubmittedEvent(name=eventName,
                                                   latitude=lat,
                                                   longitude=lng,
                                                   privacy=privacy,
-                                                  time=datetime,
-                                                  description=desc)
+                                                  description=desc,
+                                                  time=datetime)
                         db.put(newEvent)
                         self.response.out.write(template.render('index.html', {}))
                         #TODO: tags
                 except:
-                        self.response.out.write(template.render('index.html', {}))
-                        self.response.out.write('<script type="text/javascript">alert("Event improperly formed- try again");</script>')
+                        self.response.out.write(template.render('index.html', {})) 
 def main():
     
     application = webapp.WSGIApplication([('/', MainHandler),
